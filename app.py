@@ -10,7 +10,6 @@ def get_data():
     playernames = ["timoschka17", "BeefQ8i"]
     # get api key from .env file 
     riot_api_key = os.getenv("RIOT_API_KEY")
-    riot_api_key = "RGAPI-4e7a68d4-3fa9-4c5f-8b8d-db84030d61db"
     list_of_players = []
     for playername in playernames:
         api_url = f"https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{playername}" + '?api_key=' + riot_api_key
