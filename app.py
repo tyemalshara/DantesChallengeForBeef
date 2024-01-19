@@ -159,6 +159,62 @@ def get_data_from_db(added_playernames_byuser, deleted_playernames_byuser):
     print(list_of_players)
     return list_of_players, player_not_found
 
+def dashboard():
+    PLAYER_PARTICIPANTS_KEY = os.getenv("PLAYER_PARTICIPANTS_KEY")
+    # Initialize
+    deta = Deta(PLAYER_PARTICIPANTS_KEY)
+    # This how to connect to or create a database.
+    db = deta.Base("beef")
+    
+    def fetch_all_players():
+        '''Retruns a list of dicts with all the players in the database
+        e.g. [{'playername': 'timoschka17'}, {'playername': 'BeefQ8i'}]'''
+        # Fetch all the items in the database
+        res = db.fetch()
+        return res.items
+    
+    riot_api_key = os.getenv("RIOT_API_KEY")
+    list_of_players = []
+    for playername in fetch_all_players():
+        try:
+            api_url = f"https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{playername['playername']}" + '?api_key=' + riot_api_key
+            player_info = requests.get(api_url).json()
+            player_id = player_info['id']
+            entries_url = f"https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/{player_id}" + '?api_key=' + riot_api_key
+            player_entries = requests.get(entries_url).json()
+            leaguePoints = player_entries[0]['leaguePoints']
+            # add playername and leaguePoints as key-value pair to list_of_players
+            list_of_players.append({playername['playername']: leaguePoints})
+        except:
+            continue
+    return list_of_players
+    
+def main_page(data):
+    df = pd.DataFrame([{k: v for d in data for k, v in d.items()}])
+    df = df.T.reset_index()
+    df.columns = ['player_name', 'league_points']
+    df['league_points'] = df['league_points'].astype(float)
+    df = df.sort_values(by=['league_points'], ascending=False)
+    _, col2, _ = st.columns([1, 3, 1])
+    with col2:
+        st.title('مسابقة الليق اوف ليجندز برعاية :grey[بــــــيــف] :meat_on_bone: ', anchor='العنوان') 
+        st.header(' :facepunch:  الأقوى يفوز بـ لحمة لا مثيل لمذاقها ', anchor='التعليمات', help='التعليمات', divider='rainbow')
+    st.markdown("***")
+    # st.write(df)
+    container = st.container()
+    meat, chicken, pizza, hamburger = ":meat_on_bone:", ":poultry_leg:", ":pizza:", ":hamburger:"
+    with container:    
+        for i in range(len(df)):
+            if i == 0:
+                container.subheader(f":first_place_medal: + {meat} **" + df[['player_name', 'league_points']].values[i][0] + "** has " + str(int(df[['player_name', 'league_points']].values[i][1])) + " league points.")
+            elif i == 1:
+                container.subheader(f":second_place_medal: + {hamburger} **" + df[['player_name', 'league_points']].values[i][0] + "** has " + str(int(df[['player_name', 'league_points']].values[i][1])) + " league points.")
+            elif i == 2:   
+                container.subheader(f":third_place_medal: + {chicken} **" + df[['player_name', 'league_points']].values[i][0] + "** has " + str(int(df[['player_name', 'league_points']].values[i][1])) + " league points.")
+            else:
+                container.subheader(f"{pizza} **" + df[['player_name', 'league_points']].values[i][0] + "** has " + str(int(df[['player_name', 'league_points']].values[i][1])) + " league points.")
+            container.divider()    
+    
 def app():
     if login():
         # print("st.session_state['login'] ->", st.session_state['login'])
@@ -193,35 +249,11 @@ def app():
             st.success(f"Done! Player **{playernames}** has been added, icon= '👍'")
         elif playernames and not player_not_found and delete_button:
             st.success(f"Done! Player **{playernames}** has been deleted, icon= '👍'")
-        # data = [{'timoschka17': 23}, {'BeefQ8i': 37}, {'Beefh8i': 35}, {'BeehgfQ8i': 37}, {'BeefQjhj8i': 37}, {'BeefQds8i': 37}, {'BeeasfQ8i': 37}, {'BwqeeefQ8i': 37}]
-        df = pd.DataFrame([{k: v for d in data for k, v in d.items()}])
-        df = df.T.reset_index()
-        df.columns = ['player_name', 'league_points']
-        df['league_points'] = df['league_points'].astype(float)
-        df = df.sort_values(by=['league_points'], ascending=False)
-        _, col2, _ = st.columns([1, 3, 1])
-
-        with col2:
-            st.title('مسابقة الليق اوف ليجندز برعاية :grey[بــــــيــف] :meat_on_bone: ', anchor='العنوان') 
-            st.header(' :facepunch:  الأقوى يفوز بـ لحمة لا مثيل لمذاقها ', anchor='التعليمات', help='التعليمات', divider='rainbow')
-        st.markdown("***")
-        # st.write(df)
-        container = st.container()
-        meat, chicken, pizza, hamburger = ":meat_on_bone:", ":poultry_leg:", ":pizza:", ":hamburger:"
-        with container:    
-            for i in range(len(df)):
-                if i == 0:
-                    container.subheader(f":first_place_medal: + {meat} **" + df[['player_name', 'league_points']].values[i][0] + "** has " + str(int(df[['player_name', 'league_points']].values[i][1])) + " league points.")
-                elif i == 1:
-                    container.subheader(f":second_place_medal: + {hamburger} **" + df[['player_name', 'league_points']].values[i][0] + "** has " + str(int(df[['player_name', 'league_points']].values[i][1])) + " league points.")
-                elif i == 2:   
-                    container.subheader(f":third_place_medal: + {chicken} **" + df[['player_name', 'league_points']].values[i][0] + "** has " + str(int(df[['player_name', 'league_points']].values[i][1])) + " league points.")
-                else:
-                    container.subheader(f"{pizza} **" + df[['player_name', 'league_points']].values[i][0] + "** has " + str(int(df[['player_name', 'league_points']].values[i][1])) + " league points.")
-                container.divider()
-        # return df
+        main_page(data)
     else:
-        st.title("Please login to proceed")
+        # st.title("Please login to proceed")
+        data = dashboard()
+        main_page(data)
 if __name__ == "__main__":
     st.session_state['playernames_default'] = []
     if "playernames_default" not in st.session_state:   # list of current players 
