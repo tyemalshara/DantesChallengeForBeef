@@ -18,7 +18,8 @@ def login():
     if st.sidebar.button("Login") or password:
         # Authentication goes here
         # You can add a function to check the validity of the username and password
-        b9ula_admin_password = os.getenv("B9ULA_ADMIN_PASSWORD")
+        # b9ula_admin_password = os.getenv("B9ULA_ADMIN_PASSWORD")
+        b9ula_admin_password = st.secrets["B9ULA_ADMIN_PASSWORD"]
         if password == b9ula_admin_password:    # or username == 'sharatye' and password == 'beefb9ula'
             st.session_state['login'] = True
             # print(st.session_state['login'])
@@ -76,7 +77,8 @@ def login():
 #     print("playernames after deleting",st.session_state["playernames"])
 
 def get_data_from_db(added_playernames_byuser, deleted_playernames_byuser):
-    PLAYER_PARTICIPANTS_KEY = os.getenv("PLAYER_PARTICIPANTS_KEY")
+    # PLAYER_PARTICIPANTS_KEY = os.getenv("PLAYER_PARTICIPANTS_KEY")
+    PLAYER_PARTICIPANTS_KEY = st.secrets["PLAYER_PARTICIPANTS_KEY"]
     # Initialize
     deta = Deta(PLAYER_PARTICIPANTS_KEY)
     # This how to connect to or create a database.
@@ -138,7 +140,8 @@ def get_data_from_db(added_playernames_byuser, deleted_playernames_byuser):
     
     player_not_found = str()
     # get api key from .env file 
-    riot_api_key = os.getenv("RIOT_API_KEY")
+    # riot_api_key = os.getenv("RIOT_API_KEY")
+    riot_api_key = st.secrets["RIOT_API_KEY"]
     list_of_players = []
     for playername in fetch_all_players():
         try:
@@ -160,7 +163,8 @@ def get_data_from_db(added_playernames_byuser, deleted_playernames_byuser):
     return list_of_players, player_not_found
 
 def dashboard():
-    PLAYER_PARTICIPANTS_KEY = os.getenv("PLAYER_PARTICIPANTS_KEY")
+    # PLAYER_PARTICIPANTS_KEY = os.getenv("PLAYER_PARTICIPANTS_KEY")
+    PLAYER_PARTICIPANTS_KEY = st.secrets["PLAYER_PARTICIPANTS_KEY"]
     # Initialize
     deta = Deta(PLAYER_PARTICIPANTS_KEY)
     # This how to connect to or create a database.
@@ -173,7 +177,8 @@ def dashboard():
         res = db.fetch()
         return res.items
     
-    riot_api_key = os.getenv("RIOT_API_KEY")
+    # riot_api_key = os.getenv("RIOT_API_KEY")
+    riot_api_key = st.secrets["RIOT_API_KEY"]
     list_of_players = []
     for playername in fetch_all_players():
         try:
